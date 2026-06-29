@@ -2,7 +2,7 @@ const userModel = require("../models/user.model")
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
 const cookieParser = require('cookie-parser')
-const tokenBlacklistModel = require("./../models/blacklist.model")
+const tokenBlacklistModel = require("../models/blacklist.model")
 
 /**
  * @name registerUserController
@@ -46,13 +46,20 @@ async function registerUserController(req, res) {
         user: {
             id: user._id,
             email: user.email,
-            username: email.username
+            username: user.username
         }
     })
 
 }
 
-async function loginUserCOntroller(req, res) {
+/**
+ * 
+ * @name loginUserCOntroller
+ * @description login a user , expects a email and password int the request body 
+ * @access Public
+ */
+
+async function loginUserController(req, res) {
 
     const { email, password } = req.body;
 
@@ -72,20 +79,22 @@ async function loginUserCOntroller(req, res) {
         })
     }
 
-    const token = jwt.sign({ _id: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1d' })
+    const token = jwt.sign(
+        { _id: user._id, email: user.email }, 
+        process.env.JWT_SECRET, 
+        { expiresIn: '1d' }
+    )
 
     res.cookie("token", token);
 
     res.status(200).json({
         message: "User Login Successfully",
         user: {
-            _id: user._id._bsontype,
+            id: user._id,
             email: user.email,
             username: user.username
         }
     })
-
-
 
 }
 
@@ -117,14 +126,20 @@ async function logoutUserController(req, res) {
 
 async function getMeController(req, res) {
 
-    const user = await userModel.findById(req.user.id)
+    const user = await userModel.findById(req.user._id)
 
+    console.log("user =", user);
 
+    if(!user){
+        return res.status(200).json({
+        message: "User Not Found",
+    })
+    }
 
-    res.status(200).json({
+    return res.status(200).json({
         message: "User details fetched successfully",
         user: {
-            id: user._id,
+            // _id: user._id,
             username: user.username,
             email: user.email
         }
@@ -132,6 +147,6 @@ async function getMeController(req, res) {
 }
 
 module.exports = {
-    registerUserController, loginUserCOntroller, logoutUserController,
+    registerUserController, loginUserController, logoutUserController,
     getMeController
 }
