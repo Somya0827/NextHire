@@ -1,230 +1,135 @@
-import React, { useState, useRef } from 'react';
-import '../style/Home.scss';
+import React ,{useState,useEffect,useRef} from 'react'
+import "../style/home.scss"
+import {useInterview} from '../hooks/useInterview.js'
+import { useNavigate } from 'react-router'
 
 const Home = () => {
-    // Local UI states
-    const [jobDescription, setJobDescription] = useState('');
-    const [selfDescription, setSelfDescription] = useState('');
-    const [file, setFile] = useState(null);
-    const [isDragging, setIsDragging] = useState(false);
-    
-    const fileInputRef = useRef(null);
-    const maxChars = 5000;
 
-    // Handle text changes
-    const handleJobDescChange = (e) => {
-        if (e.target.value.length <= maxChars) {
-            setJobDescription(e.target.value);
-        }
-    };
+    const {loading,generateReport} = useInterview()
 
-    const handleSelfDescChange = (e) => {
-        setSelfDescription(e.target.value);
-    };
+    const [jobDescription,setJobDescription] = useState("")
+    const [selfDescription,setSelfDescription] = useState("")
+    const resumeInputRef = useRef();
 
-    // Handle file selection
-    const handleFileChange = (e) => {
-        if (e.target.files && e.target.files[0]) {
-            setFile(e.target.files[0]);
-        }
-    };
+    const navigate = useNavigate();
 
-    // Drag and drop handlers
-    const handleDragOver = (e) => {
-        e.preventDefault();
-        setIsDragging(true);
-    };
+    const handleGenerateReport = async () =>{
+        const resumeFile = resumeInputRef.current.files[0]
+        const data = await generateReport({jobDescription,selfDescription,resumeFile})
+        navigate(`/interview/${data._id}`)
+    }
 
-    const handleDragLeave = () => {
-        setIsDragging(false);
-    };
-
-    const handleDrop = (e) => {
-        e.preventDefault();
-        setIsDragging(false);
-        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-            const droppedFile = e.dataTransfer.files[0];
-            // Basic validation
-            if (droppedFile.size <= 5 * 1024 * 1024) { // 5MB limit
-                setFile(droppedFile);
-            } else {
-                alert('File size exceeds 5MB limit.');
-            }
-        }
-    };
-
-    const triggerFileInput = () => {
-        fileInputRef.current?.click();
-    };
-
-    const removeFile = (e) => {
-        e.stopPropagation();
-        setFile(null);
-        if (fileInputRef.current) {
-            fileInputRef.current.value = '';
-        }
-    };
-
-    return (
-        <div className="home-container">
-            <header className="home-header">
-                <h1>
-                    Create Your Custom <span className="highlight-gradient">Interview Plan</span>
-                </h1>
-                <p className="subtitle">
-                    Let our AI analyze the job requirements and your unique profile to build a winning strategy.
-                </p>
-            </header>
-
-            <main className="home-main">
-                <div className="interview-builder-card">
-                    {/* Workspace Panels */}
-                    <div className="panels-container">
-                        
-                        {/* Left Panel: Target Job Description */}
-                        <section className="panel left-panel">
-                            <div className="panel-header">
-                                <div className="header-title-group">
-                                    <svg className="panel-icon icon-red" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <rect width="20" height="14" x="2" y="7" rx="2" ry="2"/>
-                                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
-                                    </svg>
-                                    <h2>Target Job Description</h2>
-                                </div>
-                                <span className="badge badge-required">REQUIRED</span>
-                            </div>
-                            
-                            <div className="textarea-container">
-                                <textarea
-                                    id="jobDescription"
-                                    placeholder="Paste the full job description here...&#10;e.g. 'Senior Frontend Engineer at Google requires proficiency in React, TypeScript, and large-scale system design...'"
-                                    value={jobDescription}
-                                    onChange={handleJobDescChange}
-                                />
-                                <div className="char-counter">
-                                    {jobDescription.length} / {maxChars} chars
-                                </div>
-                            </div>
-                        </section>
-
-                        {/* Right Panel: Your Profile */}
-                        <section className="panel right-panel">
-                            <div className="panel-header">
-                                <div className="header-title-group">
-                                    <svg className="panel-icon icon-blue" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
-                                        <circle cx="12" cy="7" r="4"/>
-                                    </svg>
-                                    <h2>Your Profile</h2>
-                                </div>
-                            </div>
-
-                            <div className="profile-section">
-                                <div className="sub-header">
-                                    <h3>Upload Resume</h3>
-                                    <span className="badge badge-pink">BEST RESULTS</span>
-                                </div>
-
-                                <div 
-                                    className={`drag-drop-zone ${isDragging ? 'dragging' : ''} ${file ? 'has-file' : ''}`}
-                                    onDragOver={handleDragOver}
-                                    onDragLeave={handleDragLeave}
-                                    onDrop={handleDrop}
-                                    onClick={triggerFileInput}
-                                >
-                                    <input 
-                                        type="file" 
-                                        ref={fileInputRef}
-                                        onChange={handleFileChange}
-                                        accept=".pdf,.docx"
-                                        style={{ display: 'none' }}
-                                    />
-                                    
-                                    {!file ? (
-                                        <div className="dropzone-content">
-                                            <svg className="upload-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                                                <polyline points="17 8 12 3 7 8"/>
-                                                <line x1="12" x2="12" y1="3" y2="15"/>
-                                            </svg>
-                                            <p className="primary-text">Click to upload or drag & drop</p>
-                                            <p className="secondary-text">PDF or DOCX (Max 5MB)</p>
-                                        </div>
-                                    ) : (
-                                        <div className="file-display">
-                                            <svg className="doc-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
-                                                <polyline points="14 2 14 8 20 8"/>
-                                            </svg>
-                                            <div className="file-info">
-                                                <p className="file-name">{file.name}</p>
-                                                <p className="file-size">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
-                                            </div>
-                                            <button className="remove-file-btn" onClick={removeFile} title="Remove file">
-                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                    <line x1="18" x2="6" y1="6" y2="18"/>
-                                                    <line x1="6" x2="18" y1="6" y2="18"/>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="or-divider">
-                                <span>OR</span>
-                            </div>
-
-                            <div className="profile-section">
-                                <h3 className="section-title-simple">Quick Self-Description</h3>
-                                <textarea
-                                    className="self-desc-textarea"
-                                    placeholder="Briefly describe your experience, key skills, and years of experience if you don't have a resume handy..."
-                                    value={selfDescription}
-                                    onChange={handleSelfDescChange}
-                                />
-                            </div>
-
-                            {/* Alert/Status Callout Box */}
-                            <div className="status-callout">
-                                <svg className="info-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <circle cx="12" cy="12" r="10"/>
-                                    <line x1="12" x2="12" y1="16" y2="12"/>
-                                    <line x1="12" x2="12.01" y1="8" y2="8"/>
-                                </svg>
-                                <p>
-                                    Either a <strong>Resume</strong> or a <strong>Self Description</strong> is required to generate a personalized plan.
-                                </p>
-                            </div>
-                        </section>
-
-                    </div>
-
-                    {/* Card Footer */}
-                    <div className="card-footer">
-                        <span className="generation-info">AI-Powered Strategy Generation - Approx 30s</span>
-                        <button className="generate-btn">
-                            <svg className="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                            </svg>
-                            Generate My Interview Strategy
-                        </button>
-                    </div>
-                </div>
+    if(loading){
+        return (
+            <main>
+                <h1>Loading Your Report......</h1>
             </main>
 
-            <footer className="page-footer">
-                <nav className="footer-nav">
-                    <a href="#privacy">Privacy Policy</a>
-                    <span className="divider"></span>
-                    <a href="#terms">Terms of Service</a>
-                    <span className="divider"></span>
-                    <a href="#help">Help Center</a>
-                </nav>
+        )
+    }
+
+    return (
+        <div className='home-page'>
+
+            {/* Page Header */}
+            <header className='page-header'>
+                <h1>Create Your Custom <span className='highlight'>Interview Plan</span></h1>
+                <p>Let our AI analyze the job requirements and your unique profile to build a winning strategy.</p>
+            </header>
+
+            {/* Main Card */}
+            <div className='interview-card'>
+                <div className='interview-card__body'>
+
+                    {/* Left Panel - Job Description */}
+                    <div className='panel panel--left'>
+                        <div className='panel__header'>
+                            <span className='panel__icon'>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                            </span>
+                            <h2>Target Job Description</h2>
+                            <span className='badge badge--required'>Required</span>
+                        </div>
+                        <textarea
+                            onChange={(e)=>{setJobDescription(e.target.value)}}
+                            className='panel__textarea'
+                            placeholder={`Paste the full job description here...\ne.g. 'Senior Frontend Engineer at Google requires proficiency in React, TypeScript, and large-scale system design...'`}
+                            maxLength={5000}
+                        />
+                        <div className='char-counter'>0 / 5000 chars</div>
+                    </div>
+
+                    {/* Vertical Divider */}
+                    <div className='panel-divider' />
+
+                    {/* Right Panel - Profile */}
+                    <div className='panel panel--right'>
+                        <div className='panel__header'>
+                            <span className='panel__icon'>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            </span>
+                            <h2>Your Profile</h2>
+                        </div>
+
+                        {/* Upload Resume */}
+                        <div className='upload-section'>
+                            <label className='section-label'>
+                                Upload Resume
+                                <span className='badge badge--best'>Best Results</span>
+                            </label>
+                            <label className='dropzone' htmlFor='resume'>
+                                <span className='dropzone__icon'>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+                                </span>
+                                <p className='dropzone__title'>Click to upload or drag &amp; drop</p>
+                                <p className='dropzone__subtitle'>PDF or DOCX (Max 5MB)</p>
+                                <input ref={resumeInputRef} hidden type='file' id='resume' name='resume' accept='.pdf' />
+                            </label>
+                        </div>
+
+                        {/* OR Divider */}
+                        <div className='or-divider'><span>OR</span></div>
+
+                        {/* Quick Self-Description */}
+                        <div className='self-description'>
+                            <label className='section-label' htmlFor='selfDescription'>Quick Self-Description</label>
+                            <textarea
+                                onChange={(e)=>{setSelfDescription(e.target.value)}}
+                                id='selfDescription'
+                                name='selfDescription'
+                                className='panel__textarea panel__textarea--short'
+                                placeholder="Briefly describe your experience, key skills, and years of experience if you don't have a resume handy..."
+                            />
+                        </div>
+
+                        {/* Info Box */}
+                        <div className='info-box'>
+                            <span className='info-box__icon'>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12" stroke="#1a1f27" strokeWidth="2"/><line x1="12" y1="16" x2="12.01" y2="16" stroke="#1a1f27" strokeWidth="2"/></svg>
+                            </span>
+                            <p>Either a <strong>Resume</strong> or a <strong>Self Description</strong> is required to generate a personalized plan.</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Card Footer */}
+                <div className='interview-card__footer'>
+                    <span className='footer-info'>AI-Powered Strategy Generation &bull; Approx 30s</span>
+                    <button onClick={handleGenerateReport} className='generate-btn'>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+                        Generate My Interview Strategy
+                    </button>
+                </div>
+            </div>
+
+            {/* Page Footer */}
+            <footer className='page-footer'>
+                <a href='#'>Privacy Policy</a>
+                <a href='#'>Terms of Service</a>
+                <a href='#'>Help Center</a>
             </footer>
         </div>
-    );
-};
+    )
+}
 
-export default Home;
-
+export default Home
