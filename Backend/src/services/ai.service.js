@@ -1,6 +1,5 @@
 const { GoogleGenAI, Behavior } = require("@google/genai");
 const { z } = require("zod")
-const { zodToJsonSchema } = require("zod-to-json-schema")
 
 const ai = new GoogleGenAI({
     apiKey: process.env.GOOGLE_GENAI_API_KEY
@@ -14,7 +13,7 @@ const interviewReportSchema = z.object({
         intention: z.string().describe("The intention of interviewer behind asking this question"),
         answer: z.string().describe("How to answer this question , what points to cover, what approach to take etc.")
     })).describe("Technical questions that can be asked in the interview along with their intention and how to answer them "),
-    behaviorQuestions: z.array(z.object({
+    behavioralQuestions: z.array(z.object({
         question: z.string().describe("The technical question can be asked in interview"),
         intention: z.string().describe("The intention of interviewer behind asking this question"),
         answer: z.string().describe("How to answer this question , what points to cover, what approach to take etc.")
@@ -34,24 +33,24 @@ const interviewReportSchema = z.object({
 
 })
 
-async function generateInterviewReport(resume, selfDescription, jobDescription) {
-   
+async function generateInterviewReport({ resume, selfDescription, jobDescription }) {
+
     const prompt = `Generate an interview report for a candiadte with the following details :
     Resume : ${resume},
     self Description:${selfDescription},
     Job description : ${jobDescription}
     `
-   
+
     const response = await ai.models.generateContent({
-        model:"gemini-3-flash-preview",
+        model: "gemini-3-flash-preview",
         contents: prompt,
-        config:{
-            responseMimeType:"application/json",
-            responseSchema:zodToJsonSchema(interviewReportSchema)
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: z.toJSONSchema(interviewReportSchema)
         }
     })
 
-    // console.log(JSON.parse(response.text))
+    console.log(JSON.parse(response.text))
 
     return JSON.parse(response.text);
 }

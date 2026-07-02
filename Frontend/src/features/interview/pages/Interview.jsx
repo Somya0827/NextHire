@@ -68,6 +68,8 @@ const Interview = () => {
         )
     }
 
+    // console.log(report);
+
     const scoreColor =
         report.matchScore >= 80 ? 'score--high' :
         report.matchScore >= 60 ? 'score--mid' : 'score--low'

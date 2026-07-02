@@ -93,7 +93,7 @@ const preparationPlanSchema = new mongoose.Schema({
         required: [true, "Focus is required"]
     },
     tasks: {
-        type: String,
+        type: [String],
         required: [true, "tasks is required"]
     }
 }, {
@@ -116,18 +116,22 @@ const interviewReportSchema = new mongoose.Schema({
         min: 0,
         max: 100
     },
-    technicalQuestion: [technicalQuestionSchema],
-    behavioralQuestion: [behavioralQuestionSchema],
-    skillGap: [skillGapSchema],
+    technicalQuestions: [technicalQuestionSchema],
+    behavioralQuestions: [behavioralQuestionSchema],
+    skillGaps: [skillGapSchema],
     preparationPlan: [preparationPlanSchema],
-    user:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"users"
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "users"
+    },
+    title: {
+        type: String,
+        required: [true, "Job Title is required"]
     }
-},{
-    timestamps:true
+}, {
+    timestamps: true
 })
 
-const interviewReportModel = mongoose.model('InterviewReport',interviewReportSchema)
+const interviewReportModel = mongoose.model('InterviewReport', interviewReportSchema)
 
 module.exports = interviewReportModel; 
