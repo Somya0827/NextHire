@@ -21,11 +21,12 @@ export const useInterview = () => {
             response = await generateInterviewReport({ jobDescription, selfDescription, resumeFile })
             setReport(response.interviewReport)
         } catch (error) {
-            console.log("Error generating interview report :", error)
+            console.log("Error generating interview report :", error);
+            alert(error.response?.data?.message || "Failed to generate interview report. The request may have timed out. Please try again.");
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
-        return response.interviewReport
+        return response ? response.interviewReport : null;
     }
 
     const getReportById = async (interviewId) => {
@@ -39,7 +40,7 @@ export const useInterview = () => {
         } finally {
             setLoading(false)
         }
-        return response.interviewReport
+        return response ? response.interviewReport : null;
     }
 
     const getReports = async () => {
@@ -53,7 +54,7 @@ export const useInterview = () => {
         } finally {
             setLoading(false)
         }
-        return response.interviewReport
+        return response ? response.interviewReport : null;
     }
 
     const getResumePdf = async (interviewReportId) => {
@@ -70,6 +71,7 @@ export const useInterview = () => {
 
         } catch (error) {
             console.log(error)
+            alert(error.response?.data?.message || "Failed to generate resume PDF. The request may have timed out or failed. Please try again.");
         } finally {
             setLoading(false)
         }

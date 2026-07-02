@@ -35,6 +35,13 @@ const interviewReportSchema = z.object({
 
 })
 
+const withTimeout = (promise, ms = 90000) => {
+    return Promise.race([
+        promise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error("API Request Timed Out")), ms))
+    ]);
+};
+
 async function generateInterviewReport({ resume, selfDescription, jobDescription }) {
 
     const prompt = `Generate an interview report for a candiadte with the following details :
@@ -43,14 +50,14 @@ async function generateInterviewReport({ resume, selfDescription, jobDescription
     Job description : ${jobDescription}
     `
 
-    const response = await ai.models.generateContent({
+    const response = await withTimeout(ai.models.generateContent({
         model: "gemini-3-flash-preview",
         contents: prompt,
         config: {
             responseMimeType: "application/json",
             responseSchema: z.toJSONSchema(interviewReportSchema)
         }
-    })
+    }), 90000)
 
     console.log(JSON.parse(response.text))
 
@@ -58,7 +65,9 @@ async function generateInterviewReport({ resume, selfDescription, jobDescription
 }
 
 async function generatePdfFromHtml(htmlContent) {
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
     const page = await browser.newPage();
     await page.setContent(htmlContent, { waitUntil: "networkidle0" })
 
