@@ -35,7 +35,7 @@ const interviewReportSchema = z.object({
 
 })
 
-const withTimeout = (promise, ms = 90000) => {
+const withTimeout = (promise, ms = 300000) => {
     return Promise.race([
         promise,
         new Promise((_, reject) => setTimeout(() => reject(new Error("API Request Timed Out")), ms))
@@ -57,7 +57,7 @@ async function generateInterviewReport({ resume, selfDescription, jobDescription
             responseMimeType: "application/json",
             responseSchema: z.toJSONSchema(interviewReportSchema)
         }
-    }), 90000)
+    }), 300000)
 
     console.log(JSON.parse(response.text))
 
